@@ -8,6 +8,7 @@ const bodyParser = require('body-parser');
 const request = require('request');
 const app = express();
 const uuid = require('uuid');
+const { off } = require('process');
 
 
 // Messenger API parameters
@@ -204,6 +205,48 @@ function handleEcho(messageId, appId, metadata) {
 
 function handleDialogFlowAction(sender, action, messages, contexts, parameters) {
     switch (action) {
+        case "detailed-application":
+            let filteredContexts = contexts.filter(function (el)
+            {
+                    return el.name.includes("job_application") || el.name.includes("job-application-details_dialog_context")
+            });
+            if(filteredContexts.length > 0 && contexts[0].parameters)
+            {
+                let phone_number = (fbService.isDefined(contexts[0].parameters.fields['phone-number'])
+                && (contexts[0].parameters.fields['phone-number']) != '') ?
+                contexts[0].parameters.fields['phone-number'].stringValue : "";
+
+                let user_name = (fbService.isDefined(contexts[0].parameters.fields['user-name'])
+                && (contexts[0].parameters.fields['user-name']) != '') ?
+                contexts[0].parameters.fields['user-name'].stringValue : "";
+
+                let previous_job = (fbService.isDefined(contexts[0].parameters.fields['previous-job'])
+                && (contexts[0].parameters.fields['previous-job']) != '') ?
+                contexts[0].parameters.fields['previous-job'].stringValue : "";
+                
+                let years_of_experience = (fbService.isDefined(contexts[0].parameters.fields['years-of-experience'])
+                && (contexts[0].parameters.fields['years-of-experience']) != '') ?
+                contexts[0].parameters.fields['years-of-experience'].stringValue : "";
+
+                let job_vacancy = (fbService.isDefined(contexts[0].parameters.fields['job-vacancy'])
+                && (contexts[0].parameters.fields['job-vacancy']) != '') ?
+                contexts[0].parameters.fields['job-vacancy'].stringValue : "";
+
+                if((phone_number != "") && (user_name != "") && (previous_job != "") 
+                 &&(years_of_experience != "") &&(job_vacancy != ""))
+                {
+                    let emailContent = `A new job enquiry from ${user_name} for the job: ${job_vacancy}.<br>
+                    Previous job Position: ${previous_job}.<br>
+                    Years of Experience: ${years_of_experience}.<br>
+                    Phone Number: ${phone_number}.`
+
+                    sendEmail("New Job Application", emailContent);
+
+                } else {
+                    handleMessages(messages, sender);
+                }
+            }
+            break;
         default:
             //unhandled action, just send back the text
             handleMessages(messages, sender);
