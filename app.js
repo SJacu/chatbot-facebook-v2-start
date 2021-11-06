@@ -41,7 +41,7 @@ if (!config.SERVER_URL) { //used for ink to static files
 app.set('port', (process.env.PORT || 5000))
 
 //verify request came from facebook
-app.use(bodyParser.json({
+app.use(express.json({
     verify: verifyRequestSignature
 }));
 
@@ -49,12 +49,12 @@ app.use(bodyParser.json({
 app.use(express.static('public'));
 
 // Process application/x-www-form-urlencoded
-app.use(bodyParser.urlencoded({
+app.use(express.urlencoded({
     extended: false
 }));
 
 // Process application/json
-app.use(bodyParser.json());
+app.use(express.json());
 
 
 
