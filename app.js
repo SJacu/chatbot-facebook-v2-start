@@ -902,7 +902,10 @@ app.listen(app.get('port'), function () {
 
 function greetUserText(userId)
 {
-    request({
+    sendTextMessage("Welcome!" +
+                                "I can answer frequently asked questions for you!" +
+                                "and I perform job interviews. What can I help you with?");
+    /*request({
         uri: "https://graph.facebook.com/v3.2/" + userId,
         qs: {
             access_token: config.FB_PAGE_TOKEN
@@ -926,5 +929,5 @@ function greetUserText(userId)
         }else{
             console.error(response.body);
         }
-    });
+    });*/
 }
