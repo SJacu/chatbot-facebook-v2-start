@@ -8,4 +8,4 @@ curl -X POST -H "Content-Type: application/json" -d '{
     "text":"Hi, SmartBabe at your service!"
   }
 ]
-}' "https://graph.facebook.com/v2.6/me/messenger_profile?access_token=EAAClEAqwYtwBAPVVaL9DEZAh0etZAcQaKr3d1ufHMIxKJR1XBsqiLHT0gtH9JJgYuzcDHCmR5YVDNTwaU6sOseZAQ7zZC6ZCyJckoyvS39eZBeo5XOix6brwtOiFYSZB4TbWIPthGRgPMkD3EPGVLvZBv2BemmbPzITC1Oewo10uLUump2BtZCzJS"
+}' "https://graph.facebook.com/v2.6/me/messenger_profile?access_token=EAAClEAqwYtwBAH54YS3avINwWUQqbs8l8kxZCLDJjAUnep6MEbbcTLg8G4tKgAZA43wYM1Oho5eRRcX1ObeaCykbJOJYilZAKR1Iyw2TxkVkKttNlZCRsNTDzy3gNllK4sZCIFYcHWYsa0jXZCOw8ZA8whrsf1lcXwBZAPgteAq5gzAcedLEYgvn"
