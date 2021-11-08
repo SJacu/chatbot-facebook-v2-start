@@ -37,12 +37,10 @@ if (!config.SERVER_URL) { //used for ink to static files
     throw new Error('missing SERVER_URL');
 }
 
-
-
 app.set('port', (process.env.PORT || 5000))
 
 //verify request came from facebook
-app.use(bodyParser.json({
+app.use(express.json({
     verify: verifyRequestSignature
 }));
 
@@ -50,12 +48,12 @@ app.use(bodyParser.json({
 app.use(express.static('public'));
 
 // Process application/x-www-form-urlencoded
-app.use(bodyParser.urlencoded({
+app.use(express.urlencoded({
     extended: false
 }));
 
 // Process application/json
-app.use(bodyParser.json());
+app.use(express.json());
 
 
 
@@ -205,47 +203,32 @@ function handleEcho(messageId, appId, metadata) {
 
 function handleDialogFlowAction(sender, action, messages, contexts, parameters) {
     switch (action) {
-        case "detailed-application":
-            let filteredContexts = contexts.filter(function (el)
-            {
-                    return el.name.includes("job_application") || el.name.includes("job-application-details_dialog_context")
-            });
-            if(filteredContexts.length > 0 && contexts[0].parameters)
-            {
-                let phone_number = (fbService.isDefined(contexts[0].parameters.fields['phone-number'])
-                && (contexts[0].parameters.fields['phone-number']) != '') ?
-                contexts[0].parameters.fields['phone-number'].stringValue : "";
+        case "faq-delivery":
+            handleMessage(messages, sender);
+            sendTypingOn(sender);
+            
+            //ask what user wants to do next
+            setTimeout(function() {
+                let buttons = [
+                    {
+                        type: "web_url",
+                        url: "https://www.myapple.com/track_order",
+                        title: "Track my order"
+                    },
+                    {
+                        type: "phone_number",
+                        title: "Call us",
+                        payload: "+16505551234"
+                    },
+                    {
+                        type: "postback",
+                        title: "Keep on Chatting",
+                        payload: "CHAT"
+                    }
+                ];
 
-                let user_name = (fbService.isDefined(contexts[0].parameters.fields['user-name'])
-                && (contexts[0].parameters.fields['user-name']) != '') ?
-                contexts[0].parameters.fields['user-name'].stringValue : "";
-
-                let previous_job = (fbService.isDefined(contexts[0].parameters.fields['previous-job'])
-                && (contexts[0].parameters.fields['previous-job']) != '') ?
-                contexts[0].parameters.fields['previous-job'].stringValue : "";
-                
-                let years_of_experience = (fbService.isDefined(contexts[0].parameters.fields['years-of-experience'])
-                && (contexts[0].parameters.fields['years-of-experience']) != '') ?
-                contexts[0].parameters.fields['years-of-experience'].stringValue : "";
-
-                let job_vacancy = (fbService.isDefined(contexts[0].parameters.fields['job-vacancy'])
-                && (contexts[0].parameters.fields['job-vacancy']) != '') ?
-                contexts[0].parameters.fields['job-vacancy'].stringValue : "";
-
-                if((phone_number != "") && (user_name != "") && (previous_job != "") 
-                 &&(years_of_experience != "") &&(job_vacancy != ""))
-                {
-                    let emailContent = `A new job enquiry from ${user_name} for the job: ${job_vacancy}.<br>
-                    Previous job Position: ${previous_job}.<br>
-                    Years of Experience: ${years_of_experience}.<br>
-                    Phone Number: ${phone_number}.`
-
-                    sendEmail("New Job Application", emailContent);
-
-                } else {
-                    handleMessages(messages, sender);
-                }
-            }
+                sendButtonMessage(sender, "What would you like to do next?", buttons);
+            }, 3000)
             break;
         default:
             //unhandled action, just send back the text
@@ -758,6 +741,16 @@ function receivedPostback(event) {
     var payload = event.postback.payload;
 
     switch (payload) {
+        case "GET_STARTED":
+            greetUserText(senderID, "Hello there!");
+            break;
+        case "JOB_APPLY":
+            sendToDialogFlow(senderID, "job openings");
+            break;
+        case "CHAT":
+            //user wants to chat
+            sendTextMessage(senderID, "I love chatting too. Do you have any other questions for me?");
+            break;
         default:
             //unindentified payload
             sendTextMessage(senderID, "I'm not sure what you want. Can you be more specific?");
@@ -907,3 +900,36 @@ function isDefined(obj) {
 app.listen(app.get('port'), function () {
     console.log('running on port', app.get('port'))
 })
+
+
+function greetUserText(userId)
+{
+	//first read user firstname
+	request({
+		uri: 'https://graph.facebook.com/v3.2/' + userId,
+		qs: {
+			access_token: config.FB_PAGE_TOKEN
+		}
+
+	}, function (error, response, body)
+    {
+		if (!error && response.statusCode == 200)
+        {
+			var user = JSON.parse(body);
+			console.log('getUserData: ' + user);
+			if (user.first_name)
+            {
+				console.log("FB user: %s %s, %s", user.first_name, user.last_name, user.profile_pic);
+
+				sendTextMessage(userId, "Welcome " + user.first_name + '! ' +
+                                'I can answer frequently asked questions for you ' +
+                                'and I perform job interviews. What can I help you with?');
+			}else{
+				console.log("Cannot get data for fb user with id", userId);
+			}
+		} else {
+			console.error(response.error);
+		}
+
+	});
+}
