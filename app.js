@@ -741,8 +741,7 @@ function receivedPostback(event) {
 
     switch (payload) {
         case "GET_STARTED":
-            greetUserText(senderID);
-            break;
+            sendToDialogFlow(senderID, "Hello there!");
         case "JOB_APPLY":
             sendToDialogFlow(senderID, "job openings");
             break;
@@ -899,35 +898,3 @@ function isDefined(obj) {
 app.listen(app.get('port'), function () {
     console.log('running on port', app.get('port'))
 })
-
-function greetUserText(userId)
-{
-    sendTextMessage("Welcome!" +
-                                "I can answer frequently asked questions for you!" +
-                                "and I perform job interviews. What can I help you with?");
-    /*request({
-        uri: "https://graph.facebook.com/v3.2/" + userId,
-        qs: {
-            access_token: config.FB_PAGE_TOKEN
-        }
-    },
-    function(error, response, body)
-    {
-        if(!error && response.statusCode == 200)
-        {
-            var user = JSON.parse(body);
-            console.log("getUserDate:" + user);
-            if(user.first_name)
-            {
-                console.log("FB user: %s %s, %s", user.first_name, user.last_name, user.profile_pic);
-                sendTextMessage(userId, "Welcome " + user.first_name + "!" +
-                                "I can answer frequently asked questions for you!" +
-                                "and I perform job interviews. What can I help you with?");
-            }else{
-                console.log("Cannot get data for fb user with id", userId);
-            }
-        }else{
-            console.error(response.body);
-        }
-    });*/
-}
